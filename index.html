@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Impulso: tu espacio para explorar rutinas, encontrar videos y registrar entrenamientos."><title>IMPULSO — Tu próximo nivel</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="ideas.css"><script src="ideas-data.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<a href="#" class="brand" aria-label="Impulso, inicio"><span class="brand-icon">↗</span> IMPULSO<span class="brand-dot">®</span></a>
+<div class="workspace">TU ESPACIO DE ENTRENAMIENTO</div>
+<nav aria-label="Principal"><button class="nav active" data-view="home"><span>◈</span> Mi panel</button><button class="nav" data-view="routines"><span>▤</span> Rutinas <small>06</small></button><a class="nav" href="ideas.html"><span>▷</span> Ideas y videos</a><button class="nav" data-view="custom"><span>⊕</span> Mis rutinas <small id="custom-nav-count">0</small></button><button class="nav" data-view="history"><span>↗</span> Mi actividad</button></nav>
+<div class="side-card"><span class="mini-label">LA CLAVE ES VOLVER</span><div class="side-art">↗</div><h3>Tu ritmo.<br>Tu progreso.</h3><p>Cada sesión cuenta. Construye el hábito a tu manera.</p></div>
+<div class="profile"><div class="avatar">TÚ</div><div><strong>Mi entrenamiento</strong><span>Perfil local · Sin registro</span></div><i></i></div>
+</aside>
+<main>
+<header class="topbar"><span>TRAIN / TRACK / REPEAT</span><div><span class="live-dot"></span> <time id="today"></time></div></header>
+<section id="home-view" class="view">
+<div class="page-title"><div><p class="eyebrow">UN NUEVO DÍA PARA MOVERTE</p><h1>Tu próximo nivel<br>empieza <em>hoy.</em></h1></div><span class="edition">MENOS EXCUSAS.<br>MÁS MOVIMIENTO.</span></div>
+<div class="hero"><div class="hero-copy"><span class="pill">TU SIGUIENTE ENTRENAMIENTO</span><h2>Activa tu<br>mejor versión.</h2><p>Una rutina, un objetivo, un paso adelante.<br>Elige cómo quieres moverte hoy.</p><button class="primary" id="hero-start">Explorar rutinas <span>↗</span></button><div class="hero-meta"><span>06 rutinas</span><b>·</b><span>Sin equipo o en gym</span></div></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="energy">01<span>START<br>STRONG.</span></div><div class="barbell"><i></i><b></b><i></i></div><span class="art-note">ENCUENTRA TU IMPULSO ↗</span></div></div>
+<a class="ideas-entry" href="ideas.html"><span aria-hidden="true">▷</span><div><strong>¿Buscas una nueva idea para entrenar?</strong><p>Explora rutinas, descubre ejercicios y busca videos en YouTube.</p></div><b aria-hidden="true">↗</b></a>
+<div class="stats"><article><span class="stat-icon">↗</span><div><span>Sesiones esta semana</span><strong id="week-count">0 <small>sesiones</small></strong></div></article><article><span class="stat-icon">◷</span><div><span>Tiempo registrado</span><strong id="minutes-count">0 <small>min esta semana</small></strong></div></article><article><span class="stat-icon">◎</span><div><span>Tu objetivo semanal</span><strong><select id="goal" aria-label="Objetivo de sesiones semanales"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select> <small>sesiones</small></strong></div></article></div>
+<div class="section-heading"><div><p class="eyebrow">ELIGE TU DIRECCIÓN</p><h2>Un plan para cada energía.</h2></div><button class="text-button" id="show-all">Ver todas <span>↗</span></button></div>
+<div id="featured" class="routine-grid"></div>
+<div class="bottom-grid"><section class="week-panel"><div class="section-heading compact"><h2>Tu semana, en movimiento.</h2><span id="week-progress">0 / 3</span></div><div id="week-days" class="week-days"></div><div class="progress-track"><div id="goal-progress"></div></div><p id="goal-message">Cada hábito empieza con la primera sesión.</p></section><section class="timer-panel"><div><p class="eyebrow">RECUPERA EL AIRE</p><h2>Tiempo de descanso</h2></div><strong id="timer-display" role="timer">01:00</strong><div class="timer-presets" aria-label="Duración del descanso"><button data-seconds="30">30 s</button><button data-seconds="60" class="selected">60 s</button><button data-seconds="90">90 s</button></div><div class="timer-actions"><button id="timer-toggle" class="primary">Iniciar</button><button id="timer-reset" class="reset" aria-label="Reiniciar temporizador">↺</button></div><p id="timer-status" role="status">Un respiro y seguimos.</p></section></div>
+</section>
+<section id="routines-view" class="view" hidden><p class="eyebrow">TU BIBLIOTECA DE MOVIMIENTO</p><h1>Encuentra tu <em>rutina.</em></h1><div class="library-heading"><p class="intro">Explora sesiones de ejemplo y registra lo que completes.</p><button class="primary" data-create-routine>＋ Crear mi rutina</button></div><div class="filters" aria-label="Filtrar rutinas"><button class="selected" data-filter="all" aria-pressed="true">Todas</button><button data-filter="Fuerza" aria-pressed="false">Fuerza</button><button data-filter="Cardio" aria-pressed="false">Cardio</button><button data-filter="Movilidad" aria-pressed="false">Movilidad</button></div><div id="all-routines" class="routine-grid"></div><p class="routine-note">Rutinas de demostración para este proyecto. Adapta cargas y movimientos a tu experiencia; no son un plan personalizado.</p></section>
+<section id="custom-view" class="view" hidden>
+  <p class="eyebrow">TU PLAN, A TU MANERA</p>
+  <h1>Diseña tu <em>movimiento.</em></h1>
+  <div class="library-heading"><p class="intro">Tus ejercicios, tu orden y tu ritmo. Crea una rutina que vaya contigo.</p><button class="primary" data-create-routine>＋ Crear rutina</button></div>
+  <div class="custom-info"><span>◈</span><p>Las rutinas se guardan en este navegador. Puedes editarlas y registrar tus entrenamientos con ellas.</p></div>
+  <div id="custom-empty" class="empty-custom"><span class="empty-custom-icon" aria-hidden="true">＋</span><p class="eyebrow">EL PRIMER PASO ES TUYO</p><h2>Tu próxima rutina la creas tú.</h2><p>Agrega ejercicios, escribe las series o la duración y elige el orden. Todo en un solo lugar.</p><button class="primary" data-create-routine>Crear mi primera rutina ↗</button></div>
+  <div id="custom-routines" class="routine-grid"></div>
+</section>
+<section id="history-view" class="view" hidden><p class="eyebrow">CADA SESIÓN CUENTA</p><h1>Esto es <em>progreso.</em></h1><p class="intro">Tu historial de entrenamientos, guardado en este navegador.</p><div class="history-summary"><strong id="total-count">0</strong><span>sesiones registradas en total</span></div><div id="history-list"></div></section>
+<footer><span class="footer-brand">IMPULSO ↗</span><span>Tu constancia escribe la historia.</span><span>Demo frontend · Datos en este navegador</span></footer>
+</main>
+</div>
+<dialog id="session-dialog" aria-labelledby="session-title"><div class="dialog-top"><span class="eyebrow">TU MOMENTO ES AHORA</span><button id="close-dialog" class="close" aria-label="Cerrar rutina">×</button></div><h2 id="session-title"></h2><p id="session-meta"></p><p class="session-hint">Marca cada ejercicio al terminarlo.</p><div id="exercise-list"></div><form id="session-form"><label for="session-minutes">Minutos realizados</label><input id="session-minutes" type="number" min="1" max="300" required><button id="finish-session" class="primary" type="submit" disabled>Completa los ejercicios para registrar</button></form><p class="dialog-foot">Puedes adaptar la sesión a tu nivel. El registro solo se guarda al finalizar.</p></dialog>
+<dialog id="routine-editor" aria-labelledby="editor-title">
+  <div class="dialog-top"><span class="eyebrow">CONSTRUYE TU PROPIO PLAN</span><button id="close-editor" class="close" aria-label="Cerrar editor">×</button></div>
+  <h2 id="editor-title">Crear rutina</h2><p class="editor-intro">Dale un nombre, añade tus ejercicios y hazla tuya.</p>
+  <form id="routine-form">
+    <div class="editor-fields">
+      <div class="field field-full"><label for="routine-name">Nombre de la rutina <span>*</span></label><input id="routine-name" placeholder="Ej. Mi día de piernas" maxlength="80" required></div>
+      <div class="field"><label for="routine-category">Tipo de entrenamiento</label><select id="routine-category"><option>Fuerza</option><option>Cardio</option><option>Movilidad</option></select></div>
+      <div class="field"><label for="routine-minutes">Duración estimada (min) <span>*</span></label><input id="routine-minutes" type="number" min="1" max="300" step="1" value="30" required></div>
+      <div class="field place-field"><label for="routine-place">Dónde entrenas</label><select id="routine-place"><option>Gym</option><option>En casa</option><option>Sin equipo</option><option>Al aire libre</option></select></div>
+      <div class="field field-full"><label for="routine-description">Descripción <small>Opcional</small></label><textarea id="routine-description" placeholder="¿Qué quieres trabajar en esta sesión?" rows="2" maxlength="180"></textarea></div>
+    </div>
+    <div class="editor-section-title"><div><h3>Tu secuencia de ejercicios</h3><p>Escribe las series, repeticiones o el tiempo.</p></div><span id="exercise-count">1 / 20</span></div>
+    <div id="editor-exercises"></div>
+    <button id="add-exercise" type="button" class="add-exercise">＋ Agregar ejercicio</button>
+    <p id="editor-error" role="alert"></p>
+    <div class="editor-footer"><button type="button" id="cancel-editor" class="cancel-button">Cancelar</button><button type="submit" class="primary" id="save-routine">Guardar rutina ↗</button></div>
+  </form>
+</dialog>
+<dialog id="delete-routine-dialog" aria-labelledby="delete-title"><div class="dialog-top"><span class="eyebrow">MIS RUTINAS</span><button class="close" id="close-delete" aria-label="Cancelar eliminación">×</button></div><h2 id="delete-title">¿Eliminar esta rutina?</h2><p id="delete-routine-name"></p><p class="delete-description">Dejará de aparecer en Mis rutinas. Los entrenamientos que ya registraste se conservarán en tu historial.</p><div class="editor-footer"><button id="cancel-delete" class="cancel-button">Conservar rutina</button><button id="confirm-delete" class="danger-button">Eliminar rutina</button></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+</body></html>
