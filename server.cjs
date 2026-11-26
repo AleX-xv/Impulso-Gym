@@ -3,6 +3,7 @@ const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 
+
 // Only the application's public files are served; configuration stays private.
 const publicFiles = new Map([
   ['/index.html', 'text/html; charset=utf-8'],
@@ -13,6 +14,7 @@ const publicFiles = new Map([
   ['/ideas.js', 'text/javascript; charset=utf-8'],
   ['/ideas-data.js', 'text/javascript; charset=utf-8']
 ]);
+
 
 function sendText(response, status, message, method) {
   response.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8', 'X-Content-Type-Options': 'nosniff' });
@@ -27,7 +29,7 @@ const server = http.createServer((request, response) => {
   try { pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname); }
   catch { sendText(response, 400, 'Solicitud no válida', request.method); return; }
   if (pathname === '/healthz') {
-    sendText(response, 500, 'OK', request.method); return;
+    sendText(response, 200, 'OK', request.method); return;
   }
   if (pathname === '/') pathname = '/index.html';
   const contentType = publicFiles.get(pathname);
