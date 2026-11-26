@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo de CI y despliegue de Impulso Gym</title>
+<style>
+  :root{color-scheme:light;--ink:#142c2a;--muted:#48615c;--accent:#006b56;--paper:#f5f8f3;--line:#cedbd3;--dark:#142d29}
+  *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+  main{max-width:1050px;margin:auto;padding:clamp(1rem,4vw,3rem)}
+  header p{margin:0;color:var(--accent);font-weight:700}h1{font-size:clamp(2rem,5vw,3.15rem);line-height:1.12;margin:.35em 0 .6em}
+  h2{font-size:clamp(1.5rem,3.8vw,2.3rem);margin:.1em 0 .35em;line-height:1.15}h3{margin:0}
+  .screen{background:white;border:1px solid var(--line);border-radius:20px;padding:clamp(1rem,4vw,2.25rem);min-height:399px}
+  .timer{font:600 1rem ui-monospace,monospace;color:var(--accent)}.transcript{color:var(--muted);max-width:75ch}
+  pre{background:var(--dark);color:#f4fbf7;padding:1rem 1.2rem;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 ui-monospace,monospace}
+  a{color:var(--accent);font-weight:700;text-underline-offset:.2em}.links{display:flex;gap:.75rem 1.2rem;flex-wrap:wrap}
+  .controls{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-top:1rem}.controls progress{width:100%;height:.8rem;accent-color:var(--accent)}
+  button{font:inherit;cursor:pointer;border-radius:9px;padding:.5rem .8rem;border:1px solid #a6b9af;background:white;color:var(--ink)}
+  button:disabled{opacity:.45;cursor:default}button.primary,button[aria-current=true]{background:var(--accent);color:white;border-color:var(--accent)}
+  nav{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.45rem}details{margin-top:1.4rem}summary{cursor:pointer;font-weight:700}
+</style>
+</head>
+<body><main>
+<header><p>Práctica integradora · ULEAM</p><h1>CI y despliegue de Impulso Gym</h1></header>
+<section class="screen" aria-labelledby="chapter-title">
+  <div id="chapter-time" class="timer"></div><h2 id="chapter-title" aria-live="polite"></h2>
+  <pre id="evidence"></pre><p id="narration" class="transcript"></p><div id="links" class="links"></div>
+</section>
+<div class="controls">
+  <button id="play" class="primary" type="button">Reproducir</button>
+  <button id="previous" type="button">Anterior</button><button id="next" type="button">Siguiente</button>
+  <label><input id="voice" type="checkbox" checked> Narración en español</label>
+  <span id="clock" class="timer">0:00 / 4:10</span><progress id="progress" value="0" max="250" aria-label="Progreso de la demostración"></progress>
+</div>
+<nav id="chapters" aria-label="Capítulos"></nav>
+<details><summary>Cómo mostrar la práctica en vivo</summary>
+  <p>Abre en pestañas separadas el repositorio, las ejecuciones de Actions, el PR y el sitio en Azure. La demo sigue durante 4 minutos y 10 segundos. Puedes pausarla al abrir una evidencia.</p>
+  <p>En el sitio, abre Pausa y movilidad desde Mi panel. Verifica que el botón esté bloqueado con cero de cinco ejercicios. Marca las cinco casillas, ingresa 17 minutos, registra y abre Mi actividad. Recarga para comprobar que la sesión sigue ahí. Elimina solo el registro que acabas de crear.</p>
+  <p>Si el dispositivo no tiene una voz española disponible, puedes leer el texto de cada capítulo. Los enlaces abren las evidencias originales.</p>
+</details>
+</main>
+<script>
+'use strict';
+const repo='https://github.com/AleX-xv/Impulso-Gym';
+const app='https://impulso-gym-d8c0fjeehrengxh5.eastus-01.azurewebsites.net';
+const chapters=[
+  {start:0,title:'Proyecto y arquitectura',evidence:'GitHub → GitHub Actions → Azure App Service\nNode.js sirve HTML, CSS y JavaScript\nEl navegador guarda las sesiones en localStorage',text:'Impulso Gym es una aplicación web que organiza rutinas y registra entrenamientos. El código está en GitHub. Azure App Service ejecuta un servidor Node.js que sirve el sitio. El navegador guarda el historial en el almacenamiento local, así que el recorrido principal se puede realizar sin una cuenta ni una base de datos externa. La práctica añade un pipeline que comprueba el proyecto cada vez que se publica un cambio o se abre un pull request.',links:[['Repositorio',repo],['Aplicación en Azure',app]]},
+  {start:33,title:'Etapas del pipeline',evidence:'Checkout → Node 24 → npm ci\nSintaxis → npm test → npm run build\nPruebas sobre release/ → artefacto con SHA',text:'Abro el archivo del workflow. GitHub Actions recupera el commit y prepara Node.js veinticuatro. NPM CI instala desde el archivo de versiones fijadas. Node comprueba la sintaxis. La suite prueba la página principal, una dirección inexistente y la sonda de salud. El paso build reúne diez archivos para ejecutar el proyecto. Las mismas pruebas se repiten sobre release. Si todo pasa, GitHub guarda un artefacto cuyo nombre contiene el identificador del commit.',links:[['Workflow de CI',repo+'/blob/practica/ci-cd/.github/workflows/practica-ci.yml']]},
+  {start:75,title:'Fallo controlado y corrección',evidence:'Run 1 · CA-01 y CA-02 pasan · CA-03 falla\n/healthz recibió 500, se esperaba 200\nRun 2 · 3/3 pruebas en código y en release/',text:'La ejecución roja falló de forma deliberada. Cambiamos la sonda de disponibilidad para devolver quinientos. La prueba exigía doscientos. La salida muestra los dos valores y termina con código uno, por lo que el pipeline omite el empaquetado. Después corregimos únicamente el estado que devolvía el servidor. La misma prueba pasó, junto con las otras dos. GitHub también verificó el paquete y guardó el resultado de la ejecución verde.',links:[['Registro del fallo',repo+'/actions/runs/45894027012/job/140163370775#step:6:40'],['Ejecución exitosa',repo+'/actions/runs/45894230740']]},
+  {start:117,title:'Recorrido principal y error',evidence:'Azure · Mi panel → Pausa y movilidad\n0/5 ejercicios → botón deshabilitado\n5/5 ejercicios → registrar 17 minutos\nMi actividad → registro visible al recargar',text:'En el sitio de Azure abro Pausa y movilidad. Con cero de cinco ejercicios, el botón está deshabilitado. Marco las cinco casillas, ingreso diecisiete minutos y registro el entrenamiento. En Mi actividad aparece la sesión de movilidad. Recargo el navegador y se conserva. Eliminé el dato de demostración al finalizar. Como segundo caso de error, abro una dirección inexistente y veo el mensaje Página no encontrada.',links:[['Probar el recorrido',app],['Abrir la ruta inexistente',app+'/ruta-inexistente']]},
+  {start:164,title:'Versiones, registros y recuperación',evidence:'Azure · 1.0.0 · e95711e · despliegue histórico\nPaquete de la práctica · 1.1.0 · 4ed6d9d\nRecuperar con git revert y un nuevo despliegue validado',text:'El registro histórico de despliegue confirma que Azure recibió el commit de la versión uno punto cero punto cero. El paquete de la práctica corresponde a uno punto uno punto cero y quedó validado en su rama. Si un cambio provoca una regresión, identificamos en Actions el último despliegue bueno, revertimos el cambio mediante un pull request y comprobamos la app después del nuevo despliegue. La identidad de publicación se configura con OpenID Connect y los valores se conservan en los secretos de GitHub.',links:[['Registro de Azure',repo+'/actions/runs/40726243026/job/122950266008']]},
+  {start:208,title:'Trazabilidad y revisión',evidence:'HG-01 → CA-01 panel y CA-02 error 404\nOP-01 → CA-03 sonda HTTP 200\nPR #1 → revisión y ejecución de Actions',text:'En el pull request quedan enlazados el cambio, la historia y sus pruebas. La historia del usuario cubre el acceso al panel y el error de una ruta inexistente. La historia de operación cubre la disponibilidad. La revisión del compañero debe quedar registrada en GitHub. La entrega en Moodle incluye un único PDF y el texto en línea con estos enlaces, el aporte personal y las instrucciones para volver a ejecutar la práctica.',links:[['PR para revisión',repo+'/pull/1'],['Ejecución del PR',repo+'/actions/runs/45894287470']]}
+];
+const total=250;
+const byId=id=>document.getElementById(id);
+const format=seconds=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
+let index=0, seconds=0, started=0, playing=false, frame=0;
+const nav=byId('chapters');
+for(const [chapterIndex,chapter] of chapters.entries()){
+  const button=document.createElement('button');
+  button.type='button';button.textContent=`${format(chapter.start)} ${chapter.title}`;
+  button.addEventListener('click',()=>seek(chapterIndex));nav.append(button);
+}
+function show(chapterIndex){
+  index=chapterIndex;
+  const chapter=chapters[index];
+  const end=chapters[index+1]?.start??total;
+  byId('chapter-time').textContent=`${format(chapter.start)} a ${format(end)}`;
+  byId('chapter-title').textContent=chapter.title;
+  byId('evidence').textContent=chapter.evidence;
+  byId('narration').textContent=chapter.text;
+  byId('links').replaceChildren(...chapter.links.map(([label,url])=>{
+    const link=document.createElement('a');link.textContent=label;
+    link.href=url;link.target='_blank';link.rel='noopener noreferrer';return link;
+  }));
+  for(const [i,button] of [...nav.children].entries())button.setAttribute('aria-current',String(i===index));
+  byId('previous').disabled=index===0;byId('next').disabled=index===chapters.length-1;
+}
+function speak(){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  if(!playing||!byId('voice').checked)return;
+  const voice=new SpeechSynthesisUtterance(chapters[index].text);
+  voice.lang='es-EC';voice.rate=1.05;
+  voice.voice=speechSynthesis.getVoices().find(item=>item.lang.startsWith('es'))??null;
+  speechSynthesis.speak(voice);
+}
+function paintTime(){
+  byId('clock').textContent=`${format(seconds)} / ${format(total)}`;
+  byId('progress').value=seconds;
+}
+function update(now){
+  seconds=Math.min(total,(now-started)/1000);
+  const chapterIndex=chapters.findLastIndex(chapter=>chapter.start<=seconds);
+  if(chapterIndex!==index){show(chapterIndex);speak();}
+  paintTime();
+  if(seconds===total){playing=false;byId('play').textContent='Repetir';window.speechSynthesis?.cancel();return;}
+  frame=requestAnimationFrame(update);
+}
+function seek(chapterIndex){
+  seconds=chapters[chapterIndex].start;started=performance.now()-seconds*1000;
+  show(chapterIndex);paintTime();speak();
+}
+byId('play').addEventListener('click',()=>{
+  if(playing){playing=false;cancelAnimationFrame(frame);window.speechSynthesis?.pause();byId('play').textContent='Continuar';return;}
+  if(seconds===total)seek(0);
+  playing=true;started=performance.now()-seconds*1000;byId('play').textContent='Pausar';
+  if(window.speechSynthesis?.paused)speechSynthesis.resume();else speak();
+  frame=requestAnimationFrame(update);
+});
+byId('previous').addEventListener('click',()=>seek(index-1));byId('next').addEventListener('click',()=>seek(index+1));
+byId('voice').addEventListener('change',speak);
+show(0);paintTime();
+</script></body></html>

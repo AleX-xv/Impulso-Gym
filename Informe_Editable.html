@@ -1,0 +1,93 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Informe editable de Impulso Gym</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;color:#17252c;max-width:830px;margin:2rem auto;padding:0 1.2rem}h1{font-size:2.5rem;line-height:1.08}h2{border-top:3px solid #006e61;padding-top:1rem}h3{margin-bottom:0}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:.65rem;border:1px solid #bdccc7;vertical-align:top}th,pre{background:#eaf4f0}pre{padding:.9rem;white-space:pre-wrap}a,.lead{color:#006e61}.lead{font-weight:700}@media print{section+section{break-before:page}body{margin:0;max-width:none;font-size:11pt}}</style><body><h1>CI y despliegue de Impulso Gym</h1><p>Práctica integradora · ULEAM · 26 de noviembre de 2026</p>
+<section><h2>Introducción y arquitectura</h2>
+<p class="lead">Impulso Gym permite consultar rutinas, marcar ejercicios y registrar minutos de entrenamiento. La práctica incorpora pruebas automatizadas a un proyecto que ya se publicaba en Azure desde GitHub.</p>
+<h3 class="h">Alcance de la práctica</h3>
+<p class="p">La entrega comprueba la carga del panel, una ruta inexistente y la sonda de disponibilidad. En Azure se verificó el recorrido de una rutina con datos de demostración. En la rama de práctica se reprodujo un fallo HTTP y se corrigió antes de generar el paquete 1.1.0.</p>
+<h3 class="h">Arquitectura mínima</h3>
+<table><thead><tr><th>Componente</th><th>Responsabilidad</th></tr></thead><tbody>
+<tr><td>GitHub y GitHub Actions</td><td>El repositorio público conserva el código. Actions instala, valida y empaqueta cambios enviados por push y PR.</td></tr>
+<tr><td>Azure App Service</td><td>Linux y Node.js 24 ejecutan npm start. El servidor usa el puerto PORT que le proporciona el entorno.</td></tr>
+<tr><td>Navegador</td><td>HTML, CSS y JavaScript presentan las rutinas. localStorage conserva las sesiones en ese navegador y dominio.</td></tr>
+<tr><td>wger y YouTube</td><td>Ideas puede consultar el catálogo público de wger y abrir búsquedas de YouTube. El recorrido principal funciona sin esos servicios.</td></tr>
+</tbody></table>
+<h3 class="h">Flujo de entrega</h3>
+<p class="p">Workspace o VS Code → rama de GitHub → validación de Actions → revisión por PR. En el esquema existente, un push a main activa el workflow de Azure y el App Service sirve el sitio al navegador.</p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym">Repositorio público</a></p>
+<p><a href="https://impulso-gym-d8c0fjeehrengxh5.eastus-01.azurewebsites.net">Aplicación en Azure</a></p>
+</section>
+<section><h2>Pipeline y reproducibilidad</h2>
+<p class="lead">El workflow practica-ci.yml se ejecuta en push, en PR hacia main y admite ejecución manual. La tarea se detiene al fallar un paso obligatorio.</p>
+<table><thead><tr><th>Etapa</th><th>Qué comprueba</th></tr></thead><tbody>
+<tr><td>Descargar y preparar</td><td>Checkout del commit del evento y Node.js 24 en ubuntu-latest.</td></tr>
+<tr><td>Instalar</td><td>npm ci parte de package-lock.json. El proyecto carece de dependencias externas de npm.</td></tr>
+<tr><td>Verificar sintaxis</td><td>node --check valida el servidor y los tres archivos JavaScript del navegador.</td></tr>
+<tr><td>Ejecutar pruebas</td><td>node --test inicia el servidor en un puerto temporal y verifica panel, 404 y /healthz.</td></tr>
+<tr><td>Empaquetar y repetir</td><td>npm run build genera release/ con diez archivos. Se repiten las mismas pruebas contra el paquete.</td></tr>
+<tr><td>Archivar</td><td>GitHub conserva el artefacto con el SHA en su nombre para rastrear exactamente qué se validó.</td></tr>
+</tbody></table>
+<h3 class="h">Reproducción local</h3>
+<pre class="code">git clone --branch practica/ci-cd https://github.com/AleX-xv/Impulso-Gym.git
+cd Impulso-Gym
+npm ci --no-audit --no-fund
+npm test
+npm run build
+cd release
+npm start</pre>
+<p class="p">Usa Git, Node.js 24 con npm y Chrome o Edge. Abre http://localhost:8080/. Para comprobar el estado, visita /healthz. Ctrl+C detiene el servidor. El empaquetado copia los archivos de ejecución y conserva el JavaScript original.</p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/blob/practica/ci-cd/.github/workflows/practica-ci.yml">Workflow de CI</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/tree/practica/ci-cd">Rama de práctica y README</a></p>
+</section>
+<section><h2>Fallo controlado y corrección</h2>
+<p class="lead">Se introdujo deliberadamente un estado HTTP 500 en /healthz dentro de practica/ci-cd. El criterio CA-03 pedía 200 y el cuerpo OK para confirmar que el servidor podía atender solicitudes.</p>
+<table><thead><tr><th>Ejecución</th><th>Resultado observado</th></tr></thead><tbody>
+<tr><td>GitHub Actions n.º 1</td><td>Fallo en Ejecutar pruebas HTTP. CA-01 y CA-02 pasan. CA-03 recibe 500 frente a 200. El proceso sale con código 1 y el empaquetado queda omitido.</td></tr>
+<tr><td>GitHub Actions n.º 2</td><td>Se cambia el estado de 500 a 200. Las tres pruebas pasan en el código y en release/. Se publica un artefacto vinculado al commit 4ed6d9d.</td></tr>
+<tr><td>GitHub Actions n.º 3</td><td>La apertura del PR vuelve a lanzar el workflow, con el mismo conjunto de pruebas y empaquetado.</td></tr>
+</tbody></table>
+<h3 class="h">Extracto del registro fallido</h3>
+<pre class="code">CA-01  Panel y recursos públicos                 pasa
+CA-02  Ruta inexistente devuelve 404             pasa
+CA-03  Disponibilidad de /healthz                falla
+       500 !== 200. Exit code 1.</pre>
+<h3 class="h">Análisis del fallo</h3>
+<p class="p">El cuerpo respondía OK, pero el estado HTTP indicaba error del servidor. Una sonda que comprueba el código HTTP interpretaría el servicio como indisponible. La corrección cambia la respuesta a 200 y conserva la prueba original para detectar futuras regresiones.</p>
+<p class="p">El fallo y su corrección se ejecutaron en la rama de práctica. El workflow de despliegue histórico de Azure se dispara en main.</p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/actions/runs/45894027012/job/140163370775#step:6:40">Run fallido y aserción exacta</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/actions/runs/45894230740">Run corregido y artefacto</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/actions/runs/45894287470">Run del pull request</a></p>
+</section>
+<section><h2>Despliegue y pruebas del producto</h2>
+<p class="lead">El sitio de Impulso Gym responde en Azure. Actions registró el último despliegue exitoso observado para ese App Service el 28 de octubre de 2026, en el commit e95711e y la versión 1.0.0. La práctica generó la versión 1.1.0 en su rama.</p>
+<table><thead><tr><th>Verificación</th><th>Resultado observado el 26 de noviembre de 2026</th></tr></thead><tbody>
+<tr><td>Principal en Azure</td><td>Mi panel → Pausa y movilidad → marcar cinco ejercicios → ingresar 17 minutos → Registrar entrenamiento. El panel mostró 17 min. En Mi actividad quedó Pausa y movilidad · 17 min · Movilidad y el registro persistió al recargar. Se eliminó el dato de prueba al terminar.</td></tr>
+<tr><td>Error en Azure</td><td>Con 0 de 5 ejercicios marcados, el registro estaba deshabilitado. Al abrir /ruta-inexistente, la página mostró «Página no encontrada».</td></tr>
+<tr><td>Paquete 1.1.0</td><td>Actions verificó por HTTP el panel, el 404 y /healthz con 200 después de empaquetar. El arranque local imprimió la versión y el puerto.</td></tr>
+</tbody></table>
+<h3 class="h">Registros de operación</h3>
+<p class="p">El job deploy del run histórico confirma la publicación del paquete en Azure App Service. El arranque local del paquete corregido imprimió la línea siguiente. La comprobación de red local desde el navegador se bloqueó en el entorno de trabajo, por lo que el recorrido visual se verificó en Azure.</p>
+<pre class="code">IMPULSO 1.1.0 disponible en el puerto 8080</pre>
+<p><a href="https://impulso-gym-d8c0fjeehrengxh5.eastus-01.azurewebsites.net">Aplicación en funcionamiento</a></p>
+<p><a href="https://impulso-gym-d8c0fjeehrengxh5.eastus-01.azurewebsites.net/ruta-inexistente">Ruta inexistente en Azure</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/actions/runs/40726243026/job/122950266008">Registro del despliegue en Azure</a></p>
+</section>
+<section><h2>Recuperación revisión y aportes</h2>
+<h3 class="h">Recuperación a una versión estable</h3>
+<p class="p">Si un cambio en producción causa una regresión, consulta Actions y el Centro de implementación para identificar la versión estable. Crea una rama desde main, revierte el cambio causante con git revert, abre un PR y comprueba las pruebas. Al integrar, verifica el nuevo despliegue en Azure y repite el recorrido principal y el 404. El último punto estable registrado para Azure es e95711e (1.0.0).</p>
+<pre class="code">git worktree add --detach ../impulso-estable e95711e
+cd ../impulso-estable
+npm ci --no-audit --no-fund
+npm start</pre>
+<p class="p">El comando abre una copia local de la versión estable sin mover la rama actual. Usa el mismo origen para consultar el historial del navegador. El código publicado y los datos de localStorage tienen ciclos distintos.</p>
+<h3 class="h">Secretos del entorno</h3>
+<p class="p">El despliegue existente referencia secretos de GitHub para iniciar sesión en Azure mediante OpenID Connect. El job de despliegue pide el token de identidad y el job de CI solo lee el repositorio. El paquete de práctica incluye una lista de archivos de ejecución y las pruebas funcionan sin credenciales. La configuración privada permanece fuera del repositorio, de los registros incluidos y del PDF.</p>
+<h3 class="h">Trazabilidad y revisión</h3>
+<p class="p">HG-01 vincula el acceso al panel y las rutas inexistentes con CA-01 y CA-02. OP-01 vincula el monitoreo de disponibilidad con CA-03. El PR #1 contiene los criterios, el enlace rojo y una guía de revisión. La aprobación del compañero queda pendiente de registro en GitHub.</p>
+<h3 class="h">Aportes documentados</h3>
+<p class="p">El historial del repositorio vincula a AleX-xv con el proyecto base y sus despliegues. Esta entrega añade el workflow, las pruebas, el empaquetado, la verificación y las evidencias con asistencia de Codex. El aporte individual debe reflejar las tareas que cada integrante realizó o verificó personalmente.</p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/pull/1">Pull request y revisión de pares</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/blob/practica/ci-cd/Informe_Editable.html">Informe editable</a></p>
+<p><a href="https://github.com/AleX-xv/Impulso-Gym/blob/practica/ci-cd/Demo_Impulso.html">Demo guiada de 4 minutos y 10 segundos</a></p>
+<p><a href="https://learn.microsoft.com/en-us/azure/app-service/deploy-github-actions">Referencia de Microsoft para App Service y GitHub Actions</a></p>
+</section>
+</body></html>
