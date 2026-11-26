@@ -1,5 +1,25 @@
 # IMPULSO — Tu espacio de entrenamiento
 
+## Práctica integradora de CI y despliegue
+
+Requisitos: Git, Node.js 24 con npm y un navegador. El recorrido base funciona en local sin cuenta, base de datos ni servicios de pago. El catálogo externo de Ideas es opcional y requiere Internet.
+
+```bash
+npm ci --no-audit --no-fund
+npm test
+npm run build
+cd release
+npm start
+```
+
+Abre `http://localhost:8080`. `GET /healthz` devuelve `200 OK` y una ruta inexistente devuelve `404`. Al iniciar el servidor, la consola identifica la versión y el puerto. Pulsa `Ctrl+C` para detenerlo. `release/` contiene solo los archivos de ejecución. La aplicación usa HTML, CSS y JavaScript directamente; el paso build organiza los archivos y no transpila código.
+
+**Ramas y revisión.** `main` conserva la versión estable y activa los workflows históricos de Azure. Desarrolla en `feat/*`, `fix/*` o `practica/*` y abre un PR hacia `main`. Consulta el workflow [`practica-ci.yml`](.github/workflows/practica-ci.yml) en el PR. Integra únicamente tras la revisión de un compañero y el resultado verde de `Validar y empaquetar`. La práctica introduce y corrige su fallo en `practica/ci-cd`.
+
+**Trazabilidad.** HG-01: como persona que registra su actividad, quiero acceder al panel y recibir una respuesta clara si una ruta no existe. CA-01 valida el panel y sus recursos y CA-02 verifica la respuesta 404. OP-01: como responsable del despliegue, quiero un indicador de disponibilidad. CA-03 exige HTTP 200 en `/healthz`. Las tres pruebas están en [`server.test.cjs`](server.test.cjs).
+
+**Operación y retorno.** Registra el SHA del workflow, el artefacto, la versión de `package.json` y el resultado del recorrido. Si hay una regresión, identifica el último SHA validado, revierte el cambio por PR y vuelve a ejecutar las comprobaciones. Para restaurar el entorno local sin mover `main`, crea un worktree del SHA estable e inicia el paquete de esa versión. Mantén los valores de Azure únicamente en GitHub Actions Secrets y la configuración del App Service. La verificación local carece de credenciales.
+
 Proyecto con HTML, CSS y JavaScript y un pequeño servidor Node.js, preparado para Azure App Service en Linux con Node 24 LTS. El servidor no tiene dependencias externas y no requiere compilación. Los archivos de la página también pueden alojarse como contenido estático.
 
 ## Desplegar en Azure App Service (opción actual)

@@ -1,0 +1,44 @@
+name: CI de Impulso Gym
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validar y empaquetar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Preparar Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Instalar desde package-lock.json
+        run: npm ci --no-audit --no-fund
+      - name: Verificar sintaxis JavaScript
+        run: |
+          node --check server.cjs
+          node --check app.js
+          node --check ideas.js
+          node --check ideas-data.js
+      - name: Ejecutar pruebas HTTP
+        run: npm test
+      - name: Empaquetar aplicación
+        run: npm run build
+      - name: Probar el paquete generado
+        run: npm test
+        env:
+          IMPULSO_TEST_ROOT: release
+      - name: Guardar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: impulso-gym-${{ github.sha }}
+          path: release/
+          if-no-files-found: error

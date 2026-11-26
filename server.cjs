@@ -3,6 +3,7 @@ const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 
+
 // Only the application's public files are served; configuration stays private.
 const publicFiles = new Map([
   ['/index.html', 'text/html; charset=utf-8'],
@@ -13,6 +14,7 @@ const publicFiles = new Map([
   ['/ideas.js', 'text/javascript; charset=utf-8'],
   ['/ideas-data.js', 'text/javascript; charset=utf-8']
 ]);
+
 
 function sendText(response, status, message, method) {
   response.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8', 'X-Content-Type-Options': 'nosniff' });
@@ -26,6 +28,9 @@ const server = http.createServer((request, response) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname); }
   catch { sendText(response, 400, 'Solicitud no válida', request.method); return; }
+  if (pathname === '/healthz') {
+    sendText(response, 200, 'OK', request.method); return;
+  }
   if (pathname === '/') pathname = '/index.html';
   const contentType = publicFiles.get(pathname);
   if (!contentType) { sendText(response, 404, 'Página no encontrada', request.method); return; }
@@ -47,6 +52,9 @@ const server = http.createServer((request, response) => {
 });
 if (require.main === module) {
   const port = Number(process.env.PORT || 8080);
-  server.listen(port, '0.0.0.0', () => console.log(`IMPULSO disponible en el puerto ${port}`));
+  server.listen(port, '0.0.0.0', () => {
+    const { version } = require('./package.json');
+    console.log(`IMPULSO ${version} disponible en el puerto ${server.address().port}`);
+  });
 }
 module.exports = { server };
