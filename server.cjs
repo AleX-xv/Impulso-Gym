@@ -26,6 +26,9 @@ const server = http.createServer((request, response) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname); }
   catch { sendText(response, 400, 'Solicitud no válida', request.method); return; }
+  if (pathname === '/healthz') {
+    sendText(response, 500, 'OK', request.method); return;
+  }
   if (pathname === '/') pathname = '/index.html';
   const contentType = publicFiles.get(pathname);
   if (!contentType) { sendText(response, 404, 'Página no encontrada', request.method); return; }
@@ -47,6 +50,9 @@ const server = http.createServer((request, response) => {
 });
 if (require.main === module) {
   const port = Number(process.env.PORT || 8080);
-  server.listen(port, '0.0.0.0', () => console.log(`IMPULSO disponible en el puerto ${port}`));
+  server.listen(port, '0.0.0.0', () => {
+    const { version } = require('./package.json');
+    console.log(`IMPULSO ${version} disponible en el puerto ${server.address().port}`);
+  });
 }
 module.exports = { server };
